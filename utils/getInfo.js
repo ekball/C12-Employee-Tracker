@@ -1,6 +1,4 @@
 // create functions for each of the choices listed in root/index.js
-    //  write in SQL
-
 const db = require("../config/connection")
 
 // view all departments
@@ -8,7 +6,9 @@ viewDepts = () => {
     const sql = 'SELECT * FROM departments'
 
     db.query(sql, (req, res) => {
+        console.log('\n');
         console.table(res);
+        console.log('\n');
     })
 }
 
@@ -17,8 +17,9 @@ viewRoles = () => {
     const sql = 'SELECT * FROM roles'
 
     db.query(sql, (req, res) => {
+        console.log('\n');
         console.table(res);
-        
+        console.log('\n');
     })
 }
 
@@ -27,8 +28,9 @@ viewEmployees = () => {
     const sql = 'SELECT * FROM employees'
 
     db.query(sql, (req, res) => {
+        console.log('\n');
         console.table(res);
-    })
+        console.log('\n');    })
 }
 
 // add department
