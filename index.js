@@ -1,6 +1,7 @@
-// import inquirer
+// imports
 const inquirer = require('inquirer');
 const db = require("./config/connection")
+const cTable = require('console.table');
 
 // inquirer prompt 
 const promptUser = () => {
@@ -11,7 +12,7 @@ const promptUser = () => {
             message: 'What would you like to do?',
             choices: ['View All Departments', 'View All Roles', 'View All Employees',
                         'Add a Department', 'Add a Role', 'Add an Employee', 'Update a Role', 
-                        'Delete a Department', 'Exit']
+                        'Delete a Department', 'Delete a Role', 'Delete an Employee', 'Exit']
         }
     ])
     .then(response => {
@@ -46,6 +47,14 @@ const promptUser = () => {
         }
         else if ( response.options === 'Delete a Department' ){
             deleteDept();
+            return;
+        }
+        else if ( response.options === 'Delete a Role' ){
+            deleteRole();
+            return;
+        }
+        else if ( response.options === 'Delete an Employee' ){
+            deleteEmployee();
             return;
         }
         else if ( response.options === 'Exit' ) {
@@ -232,7 +241,7 @@ const addRole = async () => {
 
         }, (err, res) => {
 
-            // let user know that new department was added
+            // let user know that new role was added
             console.log('\n');
             console.log(`Added the ${roleTitle.title} Role into the ${whichDept.name} Department`);
             console.log('\n', '=================================================', '\n');
@@ -249,7 +258,7 @@ const addEmployee = async () => {
     
     console.log('\n', '=================================================', '\n');
 
-    // prompt user to provide the title of the new role
+    // prompt user to provide the first/last name of new employee
     const employeeName = await inquirer.prompt([
         {
             type: 'input',
@@ -268,7 +277,7 @@ const addEmployee = async () => {
         {
             type: 'input',
             name: 'last_name',
-            message: 'What is the last name of the employee?',
+            message: 'What is the last name of the new employee?',
             validate: salaryInput => {
                 if (salaryInput) {
                     return true;
@@ -287,10 +296,10 @@ const addEmployee = async () => {
     // pull the above query from the database for a response
     db.query(sql, async(err, res) => {
 
-        // prompt user to choose what dept the role belongs
+        // prompt user to choose what role the employee will have
         const whichRole = await inquirer.prompt([
 
-            // use the response from the query to create a list of dept names only
+            // use the response from the query to create a list of role titles only
             {
                 type: 'list',
                 name: 'title',
@@ -299,7 +308,7 @@ const addEmployee = async () => {
             }
         ])
 
-        // initialize empty variable to hold id of chosen department
+        // initialize empty variable to hold id of chosen role
         let roleId;
 
         // search through the rows of responses from the query to find the matching name
@@ -336,7 +345,7 @@ const addEmployee = async () => {
             {
                 type: 'list',
                 name: 'manager',
-                message: 'Which manger will this employee be assigned?',
+                message: 'Which manager will this employee be assigned?',
                 choices: managerName      
             }
         ])
@@ -381,7 +390,7 @@ const addEmployee = async () => {
 
             }, (err, res) => {
 
-                // let user know that new department was added
+                // let user know that new employee was added
                 console.log('\n');
                 console.log(`Added ${employeeName.first_name} ${employeeName.last_name} into employee database`);
                 console.log('\n', '=================================================', '\n');
@@ -463,7 +472,7 @@ const updateRole = () => {
             // search through the rows of responses from the query to find the matching title
             for (const row of res) {
 
-                // when the title matches a tile in a row
+                // when the title matches a title in a row
                 if (row.title === whichRole.role){
 
                     // assign the title to the empty variable
@@ -507,14 +516,14 @@ const deleteDept = async () => {
     // pull the above query from the database for a response
     db.query(sql, async (err, res) => {
 
-        // prompt user to choose what dept the role belongs
+        // prompt user to choose what dept to delete
         const whichDept = await inquirer.prompt([
 
             // use the response from the query to create a list of dept names only
             {
                 type: 'list',
                 name: 'name',
-                message: 'Which department will this role be assigned?',
+                message: 'Which department would you like to delete?',
                 choices: () => res.map(res => res.name)      
             }
         ])
@@ -545,9 +554,139 @@ const deleteDept = async () => {
 
             }, (err, res) => {
 
-                // let user know that new department was added
+                // let user know that new department was deleted
                 console.log('\n');
                 console.log(`Removed the ${whichDept.name} Department`);
+                console.log('\n', '=================================================', '\n');
+                        
+                // restart prompt for user input
+                promptUser();
+
+            })
+    })
+}
+
+// delete a role
+const deleteRole = async () => {
+
+    console.log('\n', '=================================================', '\n');
+
+    // set up sql variable to shortcut typing the sql code
+    const sql = `SELECT * FROM roles;`
+
+    // pull the above query from the database for a response
+    db.query(sql, async (err, res) => {
+
+        // prompt user to choose what role to delete
+        const whichRole = await inquirer.prompt([
+
+            // use the response from the query to create a list of dept names only
+            {
+                type: 'list',
+                name: 'name',
+                message: 'Which role would you like to delete?',
+                choices: () => res.map(res => res.title)      
+            }
+        ])
+
+        // initialize empty variable to hold id of chosen role
+        let roleId;
+
+        // search through the rows of responses from the query to find the matching name
+        for (const row of res) {
+
+            // when the name matches a role in a row
+            if(row.name === whichRole.title){
+
+                // assign that id to the empty variable
+                roleId = row.id;
+                continue;
+            }
+        }
+
+        // after gathering input, delete role via id from table
+
+            // set up sql variable to shortcut typing the sql code
+            const sqlDept = `DELETE FROM roles WHERE ?;`
+
+            db.query(sqlDept, {
+
+                id: roleId,
+
+            }, (err, res) => {
+
+                // let user know that role was deleted
+                console.log('\n');
+                console.log(`Removed the ${whichRole.title} Role`);
+                console.log('\n', '=================================================', '\n');
+                        
+                // restart prompt for user input
+                promptUser();
+
+            })
+    })
+}
+
+// delete an Employee
+const deleteEmployee = async () => {
+
+    console.log('\n', '=================================================', '\n');
+
+    // set up sql variable to shortcut typing the sql code
+    const sql = `SELECT * FROM employees;`
+
+    // pull the above query from the database for a response
+    db.query(sql, async (err, res) => {
+
+        // create an array containing all employee names
+            // first and last names are combined
+
+            let employeeName = res.map(res => `${res.first_name} ${res.last_name}`);
+
+            // prompt user to choose what employee will be removed
+            const whichEmployee = await inquirer.prompt([
+    
+                // use the response from the query to create a list of employee names (first + last) only
+                {
+                    type: 'list',
+                    name: 'employee',
+                    message: 'Which employee would you like to delete?',
+                    choices: employeeName      
+                }
+            ])
+
+        // initialize empty variable to hold id of chosen employee
+        let employeeId;
+
+        // search through the rows of responses from the query to find the matching name
+        for (const row of res) {
+
+            // combine first and last name of the response from the query to create full name
+            row.fullName = `${row.first_name} ${row.last_name}`
+
+            // when the name matches an employee in a row
+            if(row.fullName === whichEmployee.employee){
+
+                // assign that id to the empty variable
+                employeeId = row.id;
+                continue;
+            }
+        }
+
+        // after gathering input, delete employee via id from table
+
+            // set up sql variable to shortcut typing the sql code
+            const sqlDept = `DELETE FROM employees WHERE ?;`
+
+            db.query(sqlDept, {
+
+                id: employeeId,
+
+            }, (err, res) => {
+
+                // let user know that employee was deleted
+                console.log('\n');
+                console.log(`Removed ${whichEmployee.employee}`);
                 console.log('\n', '=================================================', '\n');
                         
                 // restart prompt for user input
