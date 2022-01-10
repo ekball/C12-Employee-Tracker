@@ -1,4 +1,4 @@
-# Challenge #6 - Weather Dashboard
+# Challenge #12 - Employee Tracker
 
 ## Description
 

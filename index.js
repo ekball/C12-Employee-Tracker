@@ -556,7 +556,7 @@ const deleteDept = async () => {
 
                 // let user know that new department was deleted
                 console.log('\n');
-                console.log(`Removed the ${whichDept.name} Department`);
+                console.log(`Removed the department`);
                 console.log('\n', '=================================================', '\n');
                         
                 // restart prompt for user input
@@ -617,7 +617,7 @@ const deleteRole = async () => {
 
                 // let user know that role was deleted
                 console.log('\n');
-                console.log(`Removed the ${whichRole.title} Role`);
+                console.log(`Removed the role`);
                 console.log('\n', '=================================================', '\n');
                         
                 // restart prompt for user input
@@ -686,7 +686,7 @@ const deleteEmployee = async () => {
 
                 // let user know that employee was deleted
                 console.log('\n');
-                console.log(`Removed ${whichEmployee.employee}`);
+                console.log(`Removed the employee`);
                 console.log('\n', '=================================================', '\n');
                         
                 // restart prompt for user input
