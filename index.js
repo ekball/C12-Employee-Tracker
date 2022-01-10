@@ -10,7 +10,8 @@ const promptUser = () => {
             name: 'options',
             message: 'What would you like to do?',
             choices: ['View All Departments', 'View All Roles', 'View All Employees',
-                        'Add a Department', 'Add a Role', 'Add an Employee', 'Update a Role', 'Exit']
+                        'Add a Department', 'Add a Role', 'Add an Employee', 'Update a Role', 
+                        'Delete a Department', 'Exit']
         }
     ])
     .then(response => {
@@ -51,7 +52,7 @@ const promptUser = () => {
 
 // view all departments
 const viewDepts = () => {
-    const sql = 'SELECT * FROM departments'
+    const sql = 'SELECT * FROM departments;'
 
     db.query(sql, (req, res) => {
 
@@ -123,7 +124,7 @@ const addDept = () => {
     ])
     .then(newDept => {
         // set up sql to put new name into a new row in the departments table
-        const sql = `INSERT INTO departments SET ?`
+        const sql = `INSERT INTO departments SET ?;`
 
         const deptName = { name: newDept.name };
 
@@ -182,7 +183,7 @@ const addRole = async () => {
     ])
 
     // set up sql variable to shortcut typing the sql code
-    const sql = `SELECT departments.* FROM departments`
+    const sql = `SELECT departments.* FROM departments;`
 
     // pull the above query from the database for a response
     db.query(sql, async(err, res) => {
@@ -214,11 +215,10 @@ const addRole = async () => {
             }
         }
     
-
         // after gathering input, combine info into new role and add to roles table
 
         // set up sql variable to shortcut typing the sql code
-        const sqlRoles = `INSERT INTO roles SET ?`
+        const sqlRoles = `INSERT INTO roles SET ?;`
 
         db.query(sqlRoles, {
 
@@ -278,7 +278,7 @@ const addEmployee = async () => {
     ])
 
     // set up sql variable to shortcut typing the sql code
-    const sql = `SELECT roles.title FROM roles`
+    const sql = `SELECT roles.title FROM roles;`
 
     // pull the above query from the database for a response
     db.query(sql, async(err, res) => {
@@ -312,7 +312,7 @@ const addEmployee = async () => {
         }
 
     // set up sql variable to shortcut typing the sql code
-    const sqlManager = `SELECT * FROM employees`
+    const sqlManager = `SELECT * FROM employees;`
 
     // pull the above query from the database for a response
     db.query(sqlManager, async(err, res) => {
@@ -366,7 +366,7 @@ const addEmployee = async () => {
         // after gathering input, combine info into new role and add to roles table
 
             // set up sql variable to shortcut typing the sql code
-            const sqlRoles = `INSERT INTO employees SET ?`
+            const sqlRoles = `INSERT INTO employees SET ?;`
 
             db.query(sqlRoles, {
 
@@ -435,7 +435,7 @@ const updateRole = () => {
         }
 
         // set up sql variable to shortcut typing the sql code
-        const sqlRole = `SELECT * FROM roles`
+        const sqlRole = `SELECT * FROM roles;`
 
         // pull the above query from the database for a response
         db.query(sqlRole, async(err, res) => {
@@ -448,7 +448,7 @@ const updateRole = () => {
                     type: 'list',
                     name: 'role',
                     message: 'What is the new role?',
-                    choices: () => res.map(res => `${res.title}`)      
+                    choices: () => res.map(res => res.title)      
                 }
             ])
 
@@ -473,10 +473,9 @@ const updateRole = () => {
 
             // set up sql variable to shortcut typing the sql code
             const sqlUpdate = `UPDATE employee
-            SET role.title = ${roleTitle}
-            SET role_id = ${roleId}
-            WHERE employee.id = ${employeeId}
-            `;
+            SET employee.role_id = ${roleId}
+            WHERE ${whichEmployee.employee};
+            `
             
             db.query(sqlUpdate, async(err, res) => {
 
@@ -493,7 +492,66 @@ const updateRole = () => {
     })
 }
 
+// delete a department
+const deleteDept = async () => {
 
+    console.log('\n', '=================================================', '\n');
+
+    // set up sql variable to shortcut typing the sql code
+    const sql = `SELECT * FROM departments;`
+
+    // pull the above query from the database for a response
+    db.query(sql, (err, res) => {
+
+        // prompt user to choose what dept the role belongs
+        const whichDept = await inquirer.prompt([
+
+            // use the response from the query to create a list of dept names only
+            {
+                type: 'list',
+                name: 'name',
+                message: 'Which department will this role be assigned?',
+                choices: () => res.map(res => res.name)      
+            }
+        ])
+
+        // initialize empty variable to hold id of chosen department
+        let deptId;
+
+        // search through the rows of responses from the query to find the matching name
+        for (const row of res) {
+
+            // when the name matches a dept in a row
+            if(row.name === whichDept.name){
+
+                // assign that id to the empty variable
+                deptId = row.id;
+                continue;
+            }
+        }
+
+        // after gathering input, delete department via id from table
+
+            // set up sql variable to shortcut typing the sql code
+            const sqlDept = `DELETE FROM departments WHERE ?;`
+
+            db.query(sqlDept, {
+
+                id: deptId,
+
+            }, (err, res) => {
+
+                // let user know that new department was added
+                console.log('\n');
+                console.log(`Removed the ${whichDept.name} Department`);
+                console.log('\n', '=================================================', '\n');
+                        
+                // restart prompt for user input
+                promptUser();
+
+            })
+    })
+}
 
 // function to start program
 promptUser();
