@@ -44,6 +44,10 @@ const promptUser = () => {
             updateRole();
             return;
         }
+        else if ( response.options === 'Delete a Department' ){
+            deleteDept();
+            return;
+        }
         else if ( response.options === 'Exit' ) {
             return;
         }
@@ -501,7 +505,7 @@ const deleteDept = async () => {
     const sql = `SELECT * FROM departments;`
 
     // pull the above query from the database for a response
-    db.query(sql, (err, res) => {
+    db.query(sql, async (err, res) => {
 
         // prompt user to choose what dept the role belongs
         const whichDept = await inquirer.prompt([
